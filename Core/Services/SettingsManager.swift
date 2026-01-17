@@ -14,6 +14,7 @@ final class SettingsManager {
         static let defaultLaunchPage = "settings.defaultLaunchPage"
         static let hapticFeedbackEnabled = "settings.hapticFeedbackEnabled"
         static let rememberPlaybackSettings = "settings.rememberPlaybackSettings"
+        static let rememberQueue = "settings.rememberQueue"
     }
 
     // MARK: - Launch Page Options
@@ -94,6 +95,18 @@ final class SettingsManager {
         }
     }
 
+    /// Whether to remember the playback queue across app restarts.
+    var rememberQueue: Bool {
+        didSet {
+            UserDefaults.standard.set(self.rememberQueue, forKey: Keys.rememberQueue)
+            // Clear stale values when setting is disabled to prevent unexpected restoration
+            if !self.rememberQueue {
+                UserDefaults.standard.removeObject(forKey: "playerQueue")
+                UserDefaults.standard.removeObject(forKey: "playerCurrentIndex")
+            }
+        }
+    }
+
     /// The last page the user was on (for "Last Used" option).
     var lastUsedPage: LaunchPage = .home
 
@@ -104,6 +117,7 @@ final class SettingsManager {
         self.showNowPlayingNotifications = UserDefaults.standard.object(forKey: Keys.showNowPlayingNotifications) as? Bool ?? true
         self.hapticFeedbackEnabled = UserDefaults.standard.object(forKey: Keys.hapticFeedbackEnabled) as? Bool ?? true
         self.rememberPlaybackSettings = UserDefaults.standard.object(forKey: Keys.rememberPlaybackSettings) as? Bool ?? false
+        self.rememberQueue = UserDefaults.standard.object(forKey: Keys.rememberQueue) as? Bool ?? false
 
         if let rawValue = UserDefaults.standard.string(forKey: Keys.defaultLaunchPage),
            let page = LaunchPage(rawValue: rawValue)

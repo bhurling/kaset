@@ -134,6 +134,10 @@ final class PlayerService: NSObject, PlayerServiceProtocol {
     static let shuffleEnabledKey = "playerShuffleEnabled"
     /// UserDefaults key for persisting repeat mode.
     static let repeatModeKey = "playerRepeatMode"
+    /// UserDefaults key for persisting queue.
+    static let queueKey = "playerQueue"
+    /// UserDefaults key for persisting current index.
+    static let currentIndexKey = "playerCurrentIndex"
 
     // MARK: - Initialization
 
@@ -175,6 +179,11 @@ final class PlayerService: NSObject, PlayerServiceProtocol {
                 }
                 self.logger.info("Restored repeat mode: \(String(describing: self.repeatMode))")
             }
+        }
+
+        // Restore queue and current index if enabled in settings
+        if SettingsManager.shared.rememberQueue {
+            self.restoreQueue()
         }
 
         // Load mock state for UI tests
@@ -496,6 +505,10 @@ final class PlayerService: NSObject, PlayerServiceProtocol {
         self.logger.debug("Resuming playback")
         if self.pendingPlayVideoId != nil {
             SingletonPlayerWebView.shared.play()
+        } else if let currentTrack = self.currentTrack {
+            // If we have a current track but no pending video (e.g., restored from queue),
+            // start playing it
+            await self.play(song: currentTrack)
         } else {
             await self.evaluatePlayerCommand("play")
         }
@@ -523,6 +536,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol {
                 }
                 // Check if we should fetch more songs
                 await self.fetchMoreMixSongsIfNeeded()
+                self.persistQueue()
                 return
             }
 
@@ -534,12 +548,14 @@ final class PlayerService: NSObject, PlayerServiceProtocol {
                 }
                 // Check if we should fetch more songs
                 await self.fetchMoreMixSongsIfNeeded()
+                self.persistQueue()
             } else if self.repeatMode == .all {
                 // Loop back to start if repeat all is enabled
                 self.currentIndex = 0
                 if let firstSong = queue.first {
                     await self.play(song: firstSong)
                 }
+                self.persistQueue()
             } else if self.mixContinuationToken != nil {
                 // At end of queue but have continuation - fetch more and continue
                 let previousCount = self.queue.count
@@ -550,6 +566,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol {
                     if let nextSong = queue[safe: currentIndex] {
                         await self.play(song: nextSong)
                     }
+                    self.persistQueue()
                 }
             }
             // At end of queue with repeat off and no continuation, don't do anything
@@ -580,6 +597,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol {
                 if let prevSong = queue[safe: currentIndex] {
                     await self.play(song: prevSong)
                 }
+                self.persistQueue()
             } else {
                 // At start of queue, just restart current track
                 if self.pendingPlayVideoId != nil {
@@ -715,6 +733,67 @@ final class PlayerService: NSObject, PlayerServiceProtocol {
                     SingletonPlayerWebView.shared.setVolume(Double(vol) / 100.0)
                 }
             }
+        }
+    }
+
+    // MARK: - Queue Persistence
+
+    /// Restores the queue and current index from UserDefaults.
+    private func restoreQueue() {
+        guard let queueData = UserDefaults.standard.data(forKey: Self.queueKey) else {
+            self.logger.debug("No saved queue found")
+            return
+        }
+
+        do {
+            let decoder = JSONDecoder()
+            let savedQueue = try decoder.decode([Song].self, from: queueData)
+
+            // Restore current index
+            let savedIndex = UserDefaults.standard.integer(forKey: Self.currentIndexKey)
+            let validIndex = max(0, min(savedIndex, savedQueue.count - 1))
+
+            self.queue = savedQueue
+            self.currentIndex = validIndex
+
+            // Set the current track so the UI shows it
+            // Do NOT set pendingPlayVideoId to avoid auto-play on app start
+            if let currentSong = savedQueue[safe: validIndex] {
+                self.currentTrack = currentSong
+                self.state = .idle
+                self.logger.info("Restored queue with \(savedQueue.count) songs, current track: \(currentSong.title)")
+            } else {
+                self.logger.info("Restored queue with \(savedQueue.count) songs, current index: \(validIndex)")
+            }
+        } catch {
+            self.logger.error("Failed to restore queue: \(error.localizedDescription)")
+        }
+    }
+
+    /// Persists the current queue and index to UserDefaults.
+    func persistQueue() {
+        guard SettingsManager.shared.rememberQueue else {
+            return
+        }
+
+        // Don't persist empty queues
+        guard !self.queue.isEmpty else {
+            UserDefaults.standard.removeObject(forKey: Self.queueKey)
+            UserDefaults.standard.removeObject(forKey: Self.currentIndexKey)
+            self.logger.debug("Cleared persisted queue (queue is empty)")
+            return
+        }
+
+        do {
+            let encoder = JSONEncoder()
+            let queueData = try encoder.encode(self.queue)
+
+            UserDefaults.standard.set(queueData, forKey: Self.queueKey)
+            UserDefaults.standard.set(self.currentIndex, forKey: Self.currentIndexKey)
+
+            self.logger.debug("Persisted queue with \(self.queue.count) songs, current index: \(self.currentIndex)")
+        } catch {
+            self.logger.error("Failed to persist queue: \(error.localizedDescription)")
         }
     }
 }

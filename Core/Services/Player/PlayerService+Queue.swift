@@ -15,6 +15,7 @@ extension PlayerService {
         if let song = songs[safe: safeIndex] {
             await self.play(song: song)
         }
+        self.persistQueue()
     }
 
     /// Plays a song and fetches similar songs (radio queue) in the background.
@@ -32,6 +33,7 @@ extension PlayerService {
 
         // Fetch radio queue in background
         await self.fetchAndApplyRadioQueue(for: song.videoId)
+        self.persistQueue()
     }
 
     /// Plays an artist mix from a mix playlist ID.
@@ -73,6 +75,7 @@ extension PlayerService {
             await self.play(videoId: shuffledSongs[0].videoId)
 
             self.logger.info("Mix queue loaded with \(shuffledSongs.count) songs, hasContinuation: \(result.continuationToken != nil)")
+            self.persistQueue()
         } catch {
             self.logger.warning("Failed to fetch mix queue: \(error.localizedDescription)")
         }
@@ -114,6 +117,7 @@ extension PlayerService {
                 updatedQueue.append(contentsOf: newSongs)
                 self.queue = updatedQueue
                 self.logger.info("Added \(newSongs.count) new songs to queue, total: \(self.queue.count)")
+                self.persistQueue()
             }
 
             // Update continuation token for next batch
@@ -172,6 +176,7 @@ extension PlayerService {
             self.queue = newQueue
             self.currentIndex = 0
             self.logger.info("Radio queue updated with \(newQueue.count) songs (current song at front)")
+            self.persistQueue()
         } catch {
             self.logger.warning("Failed to fetch radio queue: \(error.localizedDescription)")
         }
@@ -185,12 +190,14 @@ extension PlayerService {
         guard let currentTrack else {
             self.queue = []
             self.currentIndex = 0
+            self.persistQueue()
             return
         }
         // Keep only the current track
         self.queue = [currentTrack]
         self.currentIndex = 0
         self.logger.info("Queue cleared, keeping current track")
+        self.persistQueue()
     }
 
     /// Plays a song from the queue at the specified index.
@@ -202,6 +209,7 @@ extension PlayerService {
         }
         // Check if we need to fetch more songs for infinite mix
         await self.fetchMoreMixSongsIfNeeded()
+        self.persistQueue()
     }
 
     /// Inserts songs immediately after the current track.
@@ -211,6 +219,7 @@ extension PlayerService {
         let insertIndex = min(self.currentIndex + 1, self.queue.count)
         self.queue.insert(contentsOf: songs, at: insertIndex)
         self.logger.info("Inserted \(songs.count) songs at position \(insertIndex)")
+        self.persistQueue()
     }
 
     /// Removes songs from the queue by video ID.
@@ -229,6 +238,7 @@ extension PlayerService {
         }
 
         self.logger.info("Removed \(previousCount - self.queue.count) songs from queue")
+        self.persistQueue()
     }
 
     /// Removes a song from the queue at a specific index.
@@ -250,6 +260,7 @@ extension PlayerService {
         }
 
         self.logger.info("Removed song at index \(index) from queue")
+        self.persistQueue()
     }
 
     /// Reorders the queue based on a new order of video IDs.
@@ -278,6 +289,7 @@ extension PlayerService {
         }
 
         self.logger.info("Queue reordered with \(reordered.count) songs")
+        self.persistQueue()
     }
 
     /// Shuffles the queue, keeping the current track in place at the front.
@@ -298,6 +310,7 @@ extension PlayerService {
         }
 
         self.logger.info("Queue shuffled")
+        self.persistQueue()
     }
 
     /// Adds songs to the end of the queue.
@@ -306,5 +319,6 @@ extension PlayerService {
         guard !songs.isEmpty else { return }
         self.queue.append(contentsOf: songs)
         self.logger.info("Appended \(songs.count) songs to queue")
+        self.persistQueue()
     }
 }
