@@ -178,9 +178,18 @@ extension SingletonPlayerWebView {
 
                 try {
                     const playPauseBtn = document.querySelector('.play-pause-button.ytmusic-player-bar');
-                    const isPlaying = playPauseBtn ?
-                        (playPauseBtn.getAttribute('title') === 'Pause' ||
-                         playPauseBtn.getAttribute('aria-label') === 'Pause') : false;
+                    const video = document.querySelector('video');
+
+                    // Check both the button state and the video element's paused property
+                    // The video element is the source of truth for actual playback state
+                    let isPlaying = false;
+                    if (video) {
+                        isPlaying = !video.paused && !video.ended;
+                    } else if (playPauseBtn) {
+                        // Fallback to button state if video element not available
+                        isPlaying = playPauseBtn.getAttribute('title') === 'Pause' ||
+                                    playPauseBtn.getAttribute('aria-label') === 'Pause';
+                    }
 
                     const progressBar = document.querySelector('#progress-bar');
 

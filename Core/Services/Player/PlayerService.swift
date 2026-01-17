@@ -322,10 +322,19 @@ final class PlayerService: NSObject, PlayerServiceProtocol {
         let previousProgress = self.progress
         self.progress = progress
         self.duration = duration
-        if isPlaying {
+
+        // Update state based on actual playback state from WebView
+        // Only update if we're not in an error state
+        if case .error = self.state {
+            // Don't override error state
+        } else if isPlaying {
             self.state = .playing
-        } else if self.state == .playing {
-            self.state = .paused
+        } else {
+            // If not playing and we have content loaded, we're paused
+            // (not idle, since we have progress/duration)
+            if duration > 0 || self.currentTrack != nil {
+                self.state = .paused
+            }
         }
 
         // Detect when song is about to end (within last 2 seconds)
