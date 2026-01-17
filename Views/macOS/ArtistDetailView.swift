@@ -9,6 +9,10 @@ struct ArtistDetailView: View {
     @Environment(FavoritesManager.self) private var favoritesManager
     @Environment(SongLikeStatusManager.self) private var likeStatusManager
 
+    @State private var showPlayConfirmation = false
+    @State private var songsToPlay: [Song]?
+    @State private var playStartIndex: Int = 0
+
     var body: some View {
         Group {
             switch self.viewModel.loadingState {
@@ -43,6 +47,30 @@ struct ArtistDetailView: View {
         }
         .refreshable {
             await self.viewModel.refresh()
+        }
+        .confirmationDialog(
+            "This will interrupt the current song",
+            isPresented: self.$showPlayConfirmation,
+            titleVisibility: .visible
+        ) {
+            if let songs = songsToPlay {
+                Button("Play Next") {
+                    // Only insert the single clicked song
+                    let clickedSong = songs[self.playStartIndex]
+                    self.playerService.insertNextInQueue([clickedSong])
+                }
+                .keyboardShortcut(.defaultAction)
+
+                Button("Play Now") {
+                    Task {
+                        await self.playerService.playQueue(songs, startingAt: self.playStartIndex)
+                    }
+                }
+
+                Button("Cancel", role: .cancel) {
+                    // Dialog dismisses automatically
+                }
+            }
         }
     }
 
@@ -252,13 +280,7 @@ struct ArtistDetailView: View {
     /// Song row for top songs section - fetches all songs and plays as queue.
     private func topSongRow(_ song: Song, index: Int) -> some View {
         Button {
-            // Fetch all songs and play as queue starting from the selected song
-            Task {
-                let allSongs = await self.viewModel.getAllSongs()
-                // Find the index of the selected song in the full list
-                let startIndex = allSongs.firstIndex(where: { $0.videoId == song.videoId }) ?? index
-                await self.playerService.playQueue(allSongs, startingAt: startIndex)
-            }
+            // Single click does nothing - use context menu (right-click) for actions
         } label: {
             HStack(spacing: 12) {
                 // Thumbnail
@@ -315,10 +337,12 @@ struct ArtistDetailView: View {
                 Task {
                     let allSongs = await self.viewModel.getAllSongs()
                     let startIndex = allSongs.firstIndex(where: { $0.videoId == song.videoId }) ?? index
-                    await self.playerService.playQueue(allSongs, startingAt: startIndex)
+                    self.songsToPlay = allSongs
+                    self.playStartIndex = startIndex
+                    self.showPlayConfirmation = true
                 }
             } label: {
-                Label("Play", systemImage: "play.fill")
+                Label("Play Now", systemImage: "play.fill")
             }
 
             Divider()

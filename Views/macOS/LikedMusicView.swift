@@ -10,6 +10,8 @@ struct LikedMusicView: View {
     @State private var networkMonitor = NetworkMonitor.shared
 
     @State private var navigationPath = NavigationPath()
+    @State private var showPlayConfirmation = false
+    @State private var songToPlay: Song?
 
     var body: some View {
         NavigationStack(path: self.$navigationPath) {
@@ -72,6 +74,28 @@ struct LikedMusicView: View {
         }
         .refreshable {
             await self.viewModel.refresh()
+        }
+        .confirmationDialog(
+            "This will interrupt the current song",
+            isPresented: self.$showPlayConfirmation,
+            titleVisibility: .visible
+        ) {
+            if let song = songToPlay {
+                Button("Play Next") {
+                    self.playerService.insertNextInQueue([song])
+                }
+                .keyboardShortcut(.defaultAction)
+
+                Button("Play Now") {
+                    Task {
+                        await self.playerService.play(song: song)
+                    }
+                }
+
+                Button("Cancel", role: .cancel) {
+                    // Dialog dismisses automatically
+                }
+            }
         }
     }
 
@@ -200,9 +224,7 @@ struct LikedMusicView: View {
 
     private func songRow(_ song: Song, index: Int) -> some View {
         Button {
-            Task {
-                await self.playerService.playQueue(self.viewModel.songs, startingAt: index)
-            }
+            // Single click does nothing - use context menu (right-click) for actions
         } label: {
             HStack(spacing: 12) {
                 // Thumbnail
@@ -252,9 +274,10 @@ struct LikedMusicView: View {
         .buttonStyle(.plain)
         .contextMenu {
             Button {
-                Task { await self.playerService.play(song: song) }
+                self.songToPlay = song
+                self.showPlayConfirmation = true
             } label: {
-                Label("Play", systemImage: "play.fill")
+                Label("Play Now", systemImage: "play.fill")
             }
 
             Divider()

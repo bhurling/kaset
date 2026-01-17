@@ -176,6 +176,7 @@
 		FAV0000100000003 /* FavoritesSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAV0000200000003 /* FavoritesSection.swift */; };
 		FAV0000100000004 /* FavoritesContextMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAV0000200000004 /* FavoritesContextMenu.swift */; };
 		FAV0000100000005 /* FavoritesManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAV0000200000005 /* FavoritesManagerTests.swift */; };
+		PCH0000100000001 /* PlayConfirmationHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = PCH0000200000001 /* PlayConfirmationHelper.swift */; };
 		FC3FE91660E0590011A62E6A /* NewReleasesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BE87B6EFFFDDC581F4793ED /* NewReleasesView.swift */; };
 		FCF216A14E8D8CA9425230E9 /* PlayerService+Library.swift in Sources */ = {isa = PBXBuildFile; fileRef = C05DB41D343AFD0297AFB9CF /* PlayerService+Library.swift */; };
 		FF4F2B2CD2A970D17C21F57A /* AccountsListParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB9C4422DFE12C15B9CBE844 /* AccountsListParser.swift */; };
@@ -218,7 +219,7 @@
 		1D7DDDC369AB4D72D7306F02 /* SkeletonView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SkeletonView.swift; sourceTree = "<group>"; };
 		1E9D7950D7FAE88739595001 /* InteractiveCardStyle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = InteractiveCardStyle.swift; sourceTree = "<group>"; };
 		1F870C29ED7A61E4BFD552C1 /* LyricsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LyricsView.swift; path = Views/macOS/LyricsView.swift; sourceTree = "<group>"; };
-		2350B1E98FBAEB45DF475C5A /* AccountRowView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AccountRowView.swift; path = AccountRowView.swift; sourceTree = "<group>"; };
+		2350B1E98FBAEB45DF475C5A /* AccountRowView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccountRowView.swift; sourceTree = "<group>"; };
 		2D1A78D6AA4AB654E9663E2D /* ArtistDetail.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArtistDetail.swift; sourceTree = "<group>"; };
 		35ABA754941E379E40CEC3DA /* VideoPlayerWindow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VideoPlayerWindow.swift; sourceTree = "<group>"; };
 		35ABA754941E379E40CEC3DB /* SingletonPlayerWebView+VideoMode.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "SingletonPlayerWebView+VideoMode.swift"; sourceTree = "<group>"; };
@@ -242,19 +243,19 @@
 		63AB4670ED0A0CAF11944C93 /* MusicVideoType.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MusicVideoType.swift; sourceTree = "<group>"; };
 		67EEAB06629FA5154C0CD393 /* PlayerService+Queue.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "PlayerService+Queue.swift"; sourceTree = "<group>"; };
 		6BE87B6EFFFDDC581F4793ED /* NewReleasesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NewReleasesView.swift; path = Views/macOS/NewReleasesView.swift; sourceTree = "<group>"; };
-		72E19702E3760593E3A00498 /* ToastView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ToastView.swift; path = ToastView.swift; sourceTree = "<group>"; };
+		72E19702E3760593E3A00498 /* ToastView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
 		74A7B3F1E5D9DD334BDCC588 /* Kaset.Debug.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; name = Kaset.Debug.entitlements; path = App/Kaset.Debug.entitlements; sourceTree = "<group>"; };
 		75733D592D5AD5DBECEFA881 /* Podcast.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Podcast.swift; sourceTree = "<group>"; };
 		7A40C879039FC38C73C120FC /* MoodCategoryDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MoodCategoryDetailView.swift; sourceTree = "<group>"; };
-		7BACB805D2FB587F379E2CC9 /* AccountService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AccountService.swift; path = AccountService.swift; sourceTree = "<group>"; };
+		7BACB805D2FB587F379E2CC9 /* AccountService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccountService.swift; sourceTree = "<group>"; };
 		7CAC6AE62FD1331D6D7197DE /* MusicIntent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MusicIntent.swift; sourceTree = "<group>"; };
 		814910C684FB517EB8004E3C /* LikedMusicViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LikedMusicViewModel.swift; path = Core/ViewModels/LikedMusicViewModel.swift; sourceTree = "<group>"; };
-		8361B0ACCD53B4838197C400 /* SidebarProfileView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SidebarProfileView.swift; path = SidebarProfileView.swift; sourceTree = "<group>"; };
+		8361B0ACCD53B4838197C400 /* SidebarProfileView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SidebarProfileView.swift; sourceTree = "<group>"; };
 		849D68199B6752D76523AED4 /* PodcastsViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PodcastsViewModel.swift; sourceTree = "<group>"; };
-		86F725B5EEB1FEEC244E81C2 /* AccountsListResponse.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AccountsListResponse.swift; path = AccountsListResponse.swift; sourceTree = "<group>"; };
+		86F725B5EEB1FEEC244E81C2 /* AccountsListResponse.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccountsListResponse.swift; sourceTree = "<group>"; };
 		88AC8367F416CA8DBAF1D2E1 /* PodcastParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PodcastParser.swift; sourceTree = "<group>"; };
 		8B650A64B02738C0BBF3A524 /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
-		8F90F821C83D56B2A6FA857F /* UserAccount.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = UserAccount.swift; path = UserAccount.swift; sourceTree = "<group>"; };
+		8F90F821C83D56B2A6FA857F /* UserAccount.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UserAccount.swift; sourceTree = "<group>"; };
 		90B59F4F81AEF77844FE5D23 /* NewReleasesViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NewReleasesViewModel.swift; path = Core/ViewModels/NewReleasesViewModel.swift; sourceTree = "<group>"; };
 		951CB3DFC58A537A241137ED /* FoundationModelsService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FoundationModelsService.swift; sourceTree = "<group>"; };
 		954C4D81429D4D66DC13015A /* SearchSuggestionsParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchSuggestionsParser.swift; sourceTree = "<group>"; };
@@ -266,7 +267,7 @@
 		ACD98FCCD196FEFA93C2F3D2 /* CommandBarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommandBarView.swift; sourceTree = "<group>"; };
 		B28AB8530C16716F70CFEEE4 /* ErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorView.swift; sourceTree = "<group>"; };
 		B5B735BB57DD2ACF165D683F /* MiniPlayerWebView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MiniPlayerWebView.swift; sourceTree = "<group>"; };
-		B8D4518D3E5C71D494A0D335 /* AccountSwitcherPopover.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AccountSwitcherPopover.swift; path = AccountSwitcherPopover.swift; sourceTree = "<group>"; };
+		B8D4518D3E5C71D494A0D335 /* AccountSwitcherPopover.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccountSwitcherPopover.swift; sourceTree = "<group>"; };
 		C05DB41D343AFD0297AFB9CF /* PlayerService+Library.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "PlayerService+Library.swift"; sourceTree = "<group>"; };
 		C8E539792EF7A65A0032CA24 /* kaset.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = kaset.icon; sourceTree = "<group>"; };
 		CBABB9FAFB133BB2F35BDA14 /* AnimationModifiers.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnimationModifiers.swift; sourceTree = "<group>"; };
@@ -375,7 +376,7 @@
 		E50000020000000000000708 /* AppLaunchUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLaunchUITests.swift; sourceTree = "<group>"; };
 		E50000020000000000000709 /* VideoUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoUITests.swift; sourceTree = "<group>"; };
 		E50000020000000000000800 /* QueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueView.swift; sourceTree = "<group>"; };
-		EB9C4422DFE12C15B9CBE844 /* AccountsListParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AccountsListParser.swift; path = AccountsListParser.swift; sourceTree = "<group>"; };
+		EB9C4422DFE12C15B9CBE844 /* AccountsListParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccountsListParser.swift; sourceTree = "<group>"; };
 		F3F9BF1AB1DBD6A559E0C840 /* SongActionsHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongActionsHelper.swift; sourceTree = "<group>"; };
 		F525663B77A8906E1792B4EC /* ArtistDetailViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArtistDetailViewModel.swift; sourceTree = "<group>"; };
 		FAV0000200000001 /* FavoriteItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteItem.swift; sourceTree = "<group>"; };
@@ -383,6 +384,7 @@
 		FAV0000200000003 /* FavoritesSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesSection.swift; sourceTree = "<group>"; };
 		FAV0000200000004 /* FavoritesContextMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesContextMenu.swift; sourceTree = "<group>"; };
 		FAV0000200000005 /* FavoritesManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesManagerTests.swift; sourceTree = "<group>"; };
+		PCH0000200000001 /* PlayConfirmationHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayConfirmationHelper.swift; sourceTree = "<group>"; };
 		FB268027D394E5FBB41AE578 /* MusicSearchTool.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MusicSearchTool.swift; sourceTree = "<group>"; };
 		FB268027D394E5FBB41AE579 /* QueueTool.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QueueTool.swift; sourceTree = "<group>"; };
 		FDE5C3A60C3FC3C8CFD8BBB0 /* LoadingState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LoadingState.swift; sourceTree = "<group>"; };
@@ -436,6 +438,7 @@
 				1D7DDDC369AB4D72D7306F02 /* SkeletonView.swift */,
 				FAV0000200000003 /* FavoritesSection.swift */,
 				FAV0000200000004 /* FavoritesContextMenu.swift */,
+				PCH0000200000001 /* PlayConfirmationHelper.swift */,
 				RAD0000200000001 /* StartRadioContextMenu.swift */,
 				SHR0000200000002 /* ShareContextMenu.swift */,
 			);
@@ -1088,6 +1091,7 @@
 				SLS0000100000001 /* SongLikeStatusManager.swift in Sources */,
 				FAV0000100000003 /* FavoritesSection.swift in Sources */,
 				FAV0000100000004 /* FavoritesContextMenu.swift in Sources */,
+				PCH0000100000001 /* PlayConfirmationHelper.swift in Sources */,
 				RAD0000100000001 /* StartRadioContextMenu.swift in Sources */,
 				NETM000100000001 /* NetworkMonitor.swift in Sources */,
 				SHR0000100000001 /* ShareService.swift in Sources */,
@@ -1322,7 +1326,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = kaset;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = App/Kaset.Debug.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1354,7 +1358,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = kaset;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = App/Kaset.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;

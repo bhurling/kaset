@@ -15,6 +15,11 @@ struct PlaylistDetailView: View {
     /// Tracks whether this playlist has been added to library in this session.
     @State private var isAddedToLibrary: Bool = false
 
+    /// Play confirmation dialog state
+    @State private var showPlayConfirmation = false
+    @State private var songsToPlay: [Song]?
+    @State private var playStartIndex: Int = 0
+
     /// Whether the refine playlist sheet is visible.
     @State private var showRefineSheet: Bool = false
 
@@ -76,6 +81,30 @@ struct PlaylistDetailView: View {
         }
         .refreshable {
             await self.viewModel.refresh()
+        }
+        .confirmationDialog(
+            "This will interrupt the current song",
+            isPresented: self.$showPlayConfirmation,
+            titleVisibility: .visible
+        ) {
+            if let songs = songsToPlay {
+                Button("Play Next") {
+                    // Only insert the single clicked song
+                    let clickedSong = songs[self.playStartIndex]
+                    self.playerService.insertNextInQueue([clickedSong])
+                }
+                .keyboardShortcut(.defaultAction)
+
+                Button("Play Now") {
+                    Task {
+                        await self.playerService.playQueue(songs, startingAt: self.playStartIndex)
+                    }
+                }
+
+                Button("Cancel", role: .cancel) {
+                    // Dialog dismisses automatically
+                }
+            }
         }
         .sheet(isPresented: self.$showRefineSheet) {
             if let detail = viewModel.playlistDetail {
@@ -243,7 +272,7 @@ struct PlaylistDetailView: View {
 
     private func trackRow(_ track: Song, index: Int, tracks: [Song], isAlbum: Bool) -> some View {
         Button {
-            self.playTrackInQueue(tracks: tracks, startingAt: index)
+            // Single click does nothing - use context menu (right-click) for actions
         } label: {
             HStack(spacing: 12) {
                 // Now playing indicator or index
@@ -301,9 +330,11 @@ struct PlaylistDetailView: View {
         .staggeredAppearance(index: min(index, 10))
         .contextMenu {
             Button {
-                self.playTrackInQueue(tracks: tracks, startingAt: index)
+                self.songsToPlay = tracks
+                self.playStartIndex = index
+                self.showPlayConfirmation = true
             } label: {
-                Label("Play", systemImage: "play.fill")
+                Label("Play Now", systemImage: "play.fill")
             }
 
             Divider()

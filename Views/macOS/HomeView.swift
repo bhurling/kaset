@@ -9,6 +9,8 @@ struct HomeView: View {
     @Environment(SongLikeStatusManager.self) private var likeStatusManager
     @State private var navigationPath = NavigationPath()
     @State private var networkMonitor = NetworkMonitor.shared
+    @State private var showPlayConfirmation = false
+    @State private var songToPlay: Song?
 
     var body: some View {
         NavigationStack(path: self.$navigationPath) {
@@ -49,6 +51,28 @@ struct HomeView: View {
         }
         .refreshable {
             await self.viewModel.refresh()
+        }
+        .confirmationDialog(
+            "This will interrupt the current song",
+            isPresented: self.$showPlayConfirmation,
+            titleVisibility: .visible
+        ) {
+            if let song = songToPlay {
+                Button("Play Next") {
+                    self.playerService.insertNextInQueue([song])
+                }
+                .keyboardShortcut(.defaultAction)
+
+                Button("Play Now") {
+                    Task {
+                        await self.playerService.play(song: song)
+                    }
+                }
+
+                Button("Cancel", role: .cancel) {
+                    // Dialog dismisses automatically
+                }
+            }
         }
     }
 
@@ -124,9 +148,10 @@ struct HomeView: View {
         switch item {
         case let .song(song):
             Button {
-                Task { await self.playerService.play(song: song) }
+                self.songToPlay = song
+                self.showPlayConfirmation = true
             } label: {
-                Label("Play", systemImage: "play.fill")
+                Label("Play Now", systemImage: "play.fill")
             }
 
             Divider()
@@ -232,11 +257,9 @@ struct HomeView: View {
 
     private func playItem(_ item: HomeSectionItem, in _: HomeSection, at _: Int) {
         switch item {
-        case let .song(song):
-            // Play the song and fetch similar songs (radio queue) in the background
-            Task {
-                await self.playerService.playWithRadio(song: song)
-            }
+        case .song:
+            // Single click does nothing for songs - use context menu (right-click) for actions
+            break
         case let .playlist(playlist):
             // Navigate to playlist detail
             self.navigationPath.append(playlist)

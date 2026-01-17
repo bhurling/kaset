@@ -11,6 +11,8 @@ struct SearchView: View {
     @Environment(SongLikeStatusManager.self) private var likeStatusManager
     @State private var navigationPath = NavigationPath()
     @State private var networkMonitor = NetworkMonitor.shared
+    @State private var showPlayConfirmation = false
+    @State private var songToPlay: Song?
 
     /// External trigger for focusing the search field (from keyboard shortcut).
     @Binding var focusTrigger: Bool
@@ -50,6 +52,28 @@ struct SearchView: View {
             if newValue {
                 self.isSearchFieldFocused = true
                 self.focusTrigger = false
+            }
+        }
+        .confirmationDialog(
+            "This will interrupt the current song",
+            isPresented: self.$showPlayConfirmation,
+            titleVisibility: .visible
+        ) {
+            if let song = songToPlay {
+                Button("Play Next") {
+                    self.playerService.insertNextInQueue([song])
+                }
+                .keyboardShortcut(.defaultAction)
+
+                Button("Play Now") {
+                    Task {
+                        await self.playerService.play(song: song)
+                    }
+                }
+
+                Button("Cancel", role: .cancel) {
+                    // Dialog dismisses automatically
+                }
             }
         }
     }
@@ -329,7 +353,11 @@ struct SearchView: View {
 
     private func resultRow(_ item: SearchResultItem) -> some View {
         Button {
-            self.handleItemTap(item)
+            // For songs, single click does nothing - use context menu (right-click) for actions
+            // For other items (artists, albums, playlists), navigate on click
+            if item.videoId == nil {
+                self.handleItemTap(item)
+            }
         } label: {
             HStack(spacing: 12) {
                 // Thumbnail
@@ -396,9 +424,10 @@ struct SearchView: View {
         switch item {
         case let .song(song):
             Button {
-                Task { await self.playerService.play(song: song) }
+                self.songToPlay = song
+                self.showPlayConfirmation = true
             } label: {
-                Label("Play", systemImage: "play.fill")
+                Label("Play Now", systemImage: "play.fill")
             }
 
             Divider()
@@ -540,11 +569,9 @@ struct SearchView: View {
 
     private func handleItemTap(_ item: SearchResultItem) {
         switch item {
-        case let .song(song):
-            // Play the song and fetch similar songs (radio queue) in the background
-            Task {
-                await self.playerService.playWithRadio(song: song)
-            }
+        case .song:
+            // Songs don't navigate - use context menu for actions
+            break
         case let .artist(artist):
             self.navigationPath.append(artist)
         case let .album(album):

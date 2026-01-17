@@ -121,6 +121,67 @@ final class PlaylistDetailViewModel {
                 )
             }
 
+            // For albums, enrich tracks with album artist and thumbnail information
+            if detail.isAlbum {
+                let albumThumbnail = detail.thumbnailURL
+                let albumAuthor = detail.author
+
+                let enrichedTracks = detail.tracks.map { track -> Song in
+                    var needsEnrichment = false
+                    var enrichedArtists = track.artists
+                    var enrichedThumbnail = track.thumbnailURL
+
+                    // If track has no artists, add the album artist
+                    if track.artists.isEmpty, let albumAuthor = albumAuthor, !albumAuthor.isEmpty {
+                        let albumArtist = Artist(
+                            id: ParsingHelpers.stableId(title: "artist", components: albumAuthor),
+                            name: albumAuthor
+                        )
+                        enrichedArtists = [albumArtist]
+                        needsEnrichment = true
+                    }
+
+                    // If track has no thumbnail, use the album thumbnail
+                    if track.thumbnailURL == nil, let albumThumbnail = albumThumbnail {
+                        enrichedThumbnail = albumThumbnail
+                        needsEnrichment = true
+                    }
+
+                    // Only create a new Song if enrichment is needed
+                    if needsEnrichment {
+                        return Song(
+                            id: track.id,
+                            title: track.title,
+                            artists: enrichedArtists,
+                            album: track.album,
+                            duration: track.duration,
+                            thumbnailURL: enrichedThumbnail,
+                            videoId: track.videoId,
+                            hasVideo: track.hasVideo,
+                            musicVideoType: track.musicVideoType,
+                            likeStatus: track.likeStatus,
+                            isInLibrary: track.isInLibrary,
+                            feedbackTokens: track.feedbackTokens
+                        )
+                    }
+                    return track
+                }
+
+                let enrichedPlaylist = Playlist(
+                    id: detail.id,
+                    title: detail.title,
+                    description: detail.description,
+                    thumbnailURL: detail.thumbnailURL,
+                    trackCount: detail.tracks.count,
+                    author: detail.author
+                )
+                detail = PlaylistDetail(
+                    playlist: enrichedPlaylist,
+                    tracks: enrichedTracks,
+                    duration: detail.duration
+                )
+            }
+
             self.playlistDetail = detail
             self.loadingState = .loaded
             let trackCount = detail.tracks.count

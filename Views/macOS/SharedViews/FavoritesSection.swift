@@ -11,6 +11,8 @@ struct FavoritesSection: View {
     @Environment(FavoritesManager.self) private var favoritesManager
     @State private var draggedItem: FavoriteItem?
     @State private var navigationPath: NavigationPath?
+    @State private var showPlayConfirmation = false
+    @State private var songToPlay: Song?
 
     /// Binding to navigation path for navigation within the section.
     var onNavigate: ((any Hashable) -> Void)?
@@ -45,6 +47,28 @@ struct FavoritesSection: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Favorites")
+        .confirmationDialog(
+            "This will interrupt the current song",
+            isPresented: self.$showPlayConfirmation,
+            titleVisibility: .visible
+        ) {
+            if let song = songToPlay {
+                Button("Play Next") {
+                    self.playerService.insertNextInQueue([song])
+                }
+                .keyboardShortcut(.defaultAction)
+
+                Button("Play Now") {
+                    Task {
+                        await self.playerService.play(song: song)
+                    }
+                }
+
+                Button("Cancel", role: .cancel) {
+                    // Dialog dismisses automatically
+                }
+            }
+        }
     }
 
     // MARK: - Actions
@@ -96,9 +120,10 @@ struct FavoritesSection: View {
         // Play button for songs
         if case let .song(song) = item.itemType {
             Button {
-                Task { await self.playerService.play(song: song) }
+                self.songToPlay = song
+                self.showPlayConfirmation = true
             } label: {
-                Label("Play", systemImage: "play.fill")
+                Label("Play Now", systemImage: "play.fill")
             }
 
             Divider()

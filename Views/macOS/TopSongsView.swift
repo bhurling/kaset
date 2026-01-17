@@ -8,6 +8,10 @@ struct TopSongsView: View {
     @Environment(FavoritesManager.self) private var favoritesManager
     @Environment(SongLikeStatusManager.self) private var likeStatusManager
 
+    @State private var showPlayConfirmation = false
+    @State private var songsToPlay: [Song]?
+    @State private var playStartIndex: Int = 0
+
     var body: some View {
         Group {
             switch self.viewModel.loadingState {
@@ -48,6 +52,30 @@ struct TopSongsView: View {
                 await self.viewModel.load()
             }
         }
+        .confirmationDialog(
+            "This will interrupt the current song",
+            isPresented: self.$showPlayConfirmation,
+            titleVisibility: .visible
+        ) {
+            if let songs = songsToPlay {
+                Button("Play Next") {
+                    // Only insert the single clicked song
+                    let clickedSong = songs[self.playStartIndex]
+                    self.playerService.insertNextInQueue([clickedSong])
+                }
+                .keyboardShortcut(.defaultAction)
+
+                Button("Play Now") {
+                    Task {
+                        await self.playerService.playQueue(songs, startingAt: self.playStartIndex)
+                    }
+                }
+
+                Button("Cancel", role: .cancel) {
+                    // Dialog dismisses automatically
+                }
+            }
+        }
     }
 
     // MARK: - Views
@@ -73,7 +101,7 @@ struct TopSongsView: View {
 
     private func songRow(_ song: Song, index: Int) -> some View {
         Button {
-            self.playSongInQueue(startingAt: index)
+            // Single click does nothing - use context menu (right-click) for actions
         } label: {
             HStack(spacing: 12) {
                 // Thumbnail
@@ -127,9 +155,11 @@ struct TopSongsView: View {
         .buttonStyle(.plain)
         .contextMenu {
             Button {
-                self.playSongInQueue(startingAt: index)
+                self.songsToPlay = self.viewModel.songs
+                self.playStartIndex = index
+                self.showPlayConfirmation = true
             } label: {
-                Label("Play", systemImage: "play.fill")
+                Label("Play Now", systemImage: "play.fill")
             }
 
             Divider()
