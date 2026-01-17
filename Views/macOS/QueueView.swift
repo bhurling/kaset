@@ -41,19 +41,6 @@ struct QueueView: View {
                 .foregroundStyle(.primary)
 
             Spacer()
-
-            // Clear queue button (only show if there are items beyond the current track)
-            if self.playerService.queue.count > 1 {
-                Button {
-                    self.playerService.clearQueue()
-                } label: {
-                    Text("Clear")
-                        .font(.subheadline)
-                        .foregroundStyle(.red)
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier(AccessibilityID.Queue.clearButton)
-            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
@@ -102,11 +89,6 @@ struct QueueView: View {
                         playerService: self.playerService,
                         onRemove: {
                             self.playerService.removeFromQueue(at: index)
-                        },
-                        onTap: {
-                            Task {
-                                await self.playerService.playFromQueue(at: index)
-                            }
                         }
                     )
                     .accessibilityIdentifier(AccessibilityID.Queue.row(index: index))
@@ -128,65 +110,79 @@ private struct QueueRowView: View {
     let favoritesManager: FavoritesManager
     let playerService: PlayerService
     let onRemove: () -> Void
-    let onTap: () -> Void
 
     @State private var isHovering = false
 
     var body: some View {
-        Button(action: self.onTap) {
-            HStack(spacing: 12) {
-                // Now Playing indicator or track number
-                self.leadingIndicator
-                    .frame(width: 24)
+        HStack(spacing: 12) {
+            // Now Playing indicator or track number
+            self.leadingIndicator
+                .frame(width: 24)
 
-                // Thumbnail
-                CachedAsyncImage(url: self.song.thumbnailURL?.highQualityThumbnailURL) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(.quaternary)
-                        .overlay {
-                            CassetteIcon(size: 16)
-                                .foregroundStyle(.secondary)
-                        }
-                }
-                .frame(width: 40, height: 40)
-                .clipShape(RoundedRectangle(cornerRadius: 4))
-
-                // Track info
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(self.song.title)
-                        .font(.system(size: 13, weight: self.isCurrentTrack ? .semibold : .regular))
-                        .lineLimit(1)
-                        .foregroundStyle(self.isCurrentTrack ? .red : .primary)
-
-                    Text(self.song.artistsDisplay.isEmpty ? "Unknown Artist" : self.song.artistsDisplay)
-                        .font(.system(size: 11))
-                        .lineLimit(1)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                // Duration
-                if let duration = song.duration {
-                    Text(self.formatDuration(duration))
-                        .font(.system(size: 11))
-                        .foregroundStyle(.tertiary)
-                }
+            // Thumbnail
+            CachedAsyncImage(url: self.song.thumbnailURL?.highQualityThumbnailURL) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } placeholder: {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(.quaternary)
+                    .overlay {
+                        CassetteIcon(size: 16)
+                            .foregroundStyle(.secondary)
+                    }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(self.backgroundColor)
-            .contentShape(Rectangle())
+            .frame(width: 40, height: 40)
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+
+            // Track info
+            VStack(alignment: .leading, spacing: 2) {
+                Text(self.song.title)
+                    .font(.system(size: 13, weight: self.isCurrentTrack ? .semibold : .regular))
+                    .lineLimit(1)
+                    .foregroundStyle(self.isCurrentTrack ? .red : .primary)
+
+                Text(self.song.artistsDisplay.isEmpty ? "Unknown Artist" : self.song.artistsDisplay)
+                    .font(.system(size: 11))
+                    .lineLimit(1)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            // Duration
+            if let duration = song.duration {
+                Text(self.formatDuration(duration))
+                    .font(.system(size: 11))
+                    .foregroundStyle(.tertiary)
+            }
         }
-        .buttonStyle(.plain)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(self.backgroundColor)
+        .contentShape(Rectangle())
         .onHover { hovering in
             self.isHovering = hovering
         }
         .contextMenu {
+            if !self.isCurrentTrack {
+                Button {
+                    self.moveToNext()
+                } label: {
+                    Label("Play Next", systemImage: "text.line.first.and.arrowtriangle.forward")
+                }
+
+                Button {
+                    Task {
+                        await self.playerService.playFromQueue(at: self.index)
+                    }
+                } label: {
+                    Label("Play Now", systemImage: "play.fill")
+                }
+
+                Divider()
+            }
+
             FavoritesContextMenu.menuItem(for: self.song, manager: self.favoritesManager)
 
             Divider()
@@ -198,6 +194,8 @@ private struct QueueRowView: View {
             ShareContextMenu.menuItem(for: self.song)
 
             if !self.isCurrentTrack {
+                Divider()
+
                 Button(role: .destructive) {
                     self.onRemove()
                 } label: {
@@ -238,6 +236,15 @@ private struct QueueRowView: View {
         let mins = Int(seconds) / 60
         let secs = Int(seconds) % 60
         return String(format: "%d:%02d", mins, secs)
+    }
+
+    private func moveToNext() {
+        // Remove the song from its current position
+        let song = self.playerService.queue[self.index]
+        self.playerService.removeFromQueue(at: self.index)
+
+        // Insert it right after the current track
+        self.playerService.insertNextInQueue([song])
     }
 }
 
