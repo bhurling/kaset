@@ -71,6 +71,9 @@ struct KasetApp: App {
     /// Whether the command bar is visible.
     @State private var showCommandBar = false
 
+    /// Whether the quit confirmation overlay is visible.
+    @State private var showQuitConfirmation = false
+
     init() {
         let auth = AuthService()
         let webkit = WebKitManager.shared
@@ -125,6 +128,11 @@ struct KasetApp: App {
                     .environment(\.searchFocusTrigger, self.$searchFocusTrigger)
                     .environment(\.navigationSelection, self.$navigationSelection)
                     .environment(\.showCommandBar, self.$showCommandBar)
+                    .overlay {
+                        if self.showQuitConfirmation {
+                            self.quitConfirmationOverlay
+                        }
+                    }
                     .task {
                         // Wire up PlayerService to AppDelegate for dock menu actions
                         self.appDelegate.playerService = self.playerService
@@ -150,6 +158,14 @@ struct KasetApp: App {
                 .environment(self.updaterService)
         }
         .commands {
+            // Override Quit command to require confirmation
+            CommandGroup(replacing: .appTermination) {
+                Button("Quit Kaset") {
+                    self.handleQuitRequest()
+                }
+                .keyboardShortcut("q", modifiers: .command)
+            }
+
             // Check for Updates command in app menu
             CommandGroup(after: .appInfo) {
                 Button("Check for Updates...") {
@@ -367,6 +383,53 @@ struct KasetApp: App {
             // Only song playback is supported via URL scheme
             DiagnosticsLogger.app.info("URL scheme only supports song playback")
         }
+    }
+
+    // MARK: - Quit Confirmation
+
+    /// Handles quit request - shows confirmation on first press, quits on second.
+    private func handleQuitRequest() {
+        if self.showQuitConfirmation {
+            // Second press - actually quit
+            NSApplication.shared.terminate(nil)
+        } else {
+            // First press - show confirmation
+            self.showQuitConfirmation = true
+
+            // Auto-hide after 3 seconds
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(3))
+                withAnimation(.easeOut(duration: 0.2)) {
+                    self.showQuitConfirmation = false
+                }
+            }
+        }
+    }
+
+    /// Quit confirmation overlay.
+    private var quitConfirmationOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.5)
+                .ignoresSafeArea()
+
+            VStack(spacing: 12) {
+                Image(systemName: "power")
+                    .font(.system(size: 48, weight: .light))
+                    .foregroundStyle(.white)
+
+                Text("Press ⌘Q again to quit")
+                    .font(.title2)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.white)
+            }
+            .padding(40)
+            .background {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.ultraThinMaterial)
+            }
+        }
+        .transition(.opacity)
+        .animation(.easeInOut(duration: 0.2), value: self.showQuitConfirmation)
     }
 }
 
