@@ -236,6 +236,14 @@ struct KasetApp: App {
                     }
                 }
                 .keyboardShortcut("l", modifiers: .command)
+
+                // Queue - ⌘P
+                Button(self.playerService.showQueue ? "Hide Queue" : "Show Queue") {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        self.playerService.showQueue.toggle()
+                    }
+                }
+                .keyboardShortcut("p", modifiers: .command)
             }
 
             // Navigation commands - replace default sidebar toggle
