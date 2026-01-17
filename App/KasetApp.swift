@@ -260,6 +260,15 @@ struct KasetApp: App {
                     }
                 }
                 .keyboardShortcut("p", modifiers: .command)
+
+                Divider()
+
+                // Clear Queue - ⌘⇧K
+                Button("Clear Queue") {
+                    self.playerService.clearQueue()
+                }
+                .keyboardShortcut("k", modifiers: [.command, .shift])
+                .disabled(self.playerService.queue.isEmpty)
             }
 
             // Navigation commands - replace default sidebar toggle
