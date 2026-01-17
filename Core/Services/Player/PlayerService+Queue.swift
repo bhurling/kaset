@@ -231,6 +231,27 @@ extension PlayerService {
         self.logger.info("Removed \(previousCount - self.queue.count) songs from queue")
     }
 
+    /// Removes a song from the queue at a specific index.
+    /// - Parameter index: The index of the song to remove.
+    func removeFromQueue(at index: Int) {
+        guard index >= 0, index < self.queue.count else { return }
+
+        self.queue.remove(at: index)
+
+        // Adjust currentIndex if needed
+        if index < self.currentIndex {
+            // Removed a song before the current track - shift index down
+            self.currentIndex -= 1
+        } else if index == self.currentIndex {
+            // Removed the current track - try to keep playing the next song
+            if self.currentIndex >= self.queue.count {
+                self.currentIndex = max(0, self.queue.count - 1)
+            }
+        }
+
+        self.logger.info("Removed song at index \(index) from queue")
+    }
+
     /// Reorders the queue based on a new order of video IDs.
     /// - Parameter videoIds: The new order of video IDs.
     func reorderQueue(videoIds: [String]) {

@@ -9,8 +9,6 @@ struct HomeView: View {
     @Environment(SongLikeStatusManager.self) private var likeStatusManager
     @State private var navigationPath = NavigationPath()
     @State private var networkMonitor = NetworkMonitor.shared
-    @State private var showPlayConfirmation = false
-    @State private var songToPlay: Song?
 
     var body: some View {
         NavigationStack(path: self.$navigationPath) {
@@ -52,28 +50,7 @@ struct HomeView: View {
         .refreshable {
             await self.viewModel.refresh()
         }
-        .confirmationDialog(
-            "This will interrupt the current song",
-            isPresented: self.$showPlayConfirmation,
-            titleVisibility: .visible
-        ) {
-            if let song = songToPlay {
-                Button("Play Next") {
-                    self.playerService.insertNextInQueue([song])
-                }
-                .keyboardShortcut(.defaultAction)
 
-                Button("Play Now") {
-                    Task {
-                        await self.playerService.play(song: song)
-                    }
-                }
-
-                Button("Cancel", role: .cancel) {
-                    // Dialog dismisses automatically
-                }
-            }
-        }
     }
 
     // MARK: - Views
@@ -148,10 +125,9 @@ struct HomeView: View {
         switch item {
         case let .song(song):
             Button {
-                self.songToPlay = song
-                self.showPlayConfirmation = true
+                self.playerService.insertNextInQueue([song])
             } label: {
-                Label("Play Now", systemImage: "play.fill")
+                Label("Play Next", systemImage: "text.line.first.and.arrowtriangle.forward")
             }
 
             Divider()

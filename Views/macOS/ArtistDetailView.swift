@@ -9,9 +9,7 @@ struct ArtistDetailView: View {
     @Environment(FavoritesManager.self) private var favoritesManager
     @Environment(SongLikeStatusManager.self) private var likeStatusManager
 
-    @State private var showPlayConfirmation = false
-    @State private var songsToPlay: [Song]?
-    @State private var playStartIndex: Int = 0
+
 
     var body: some View {
         Group {
@@ -48,30 +46,7 @@ struct ArtistDetailView: View {
         .refreshable {
             await self.viewModel.refresh()
         }
-        .confirmationDialog(
-            "This will interrupt the current song",
-            isPresented: self.$showPlayConfirmation,
-            titleVisibility: .visible
-        ) {
-            if let songs = songsToPlay {
-                Button("Play Next") {
-                    // Only insert the single clicked song
-                    let clickedSong = songs[self.playStartIndex]
-                    self.playerService.insertNextInQueue([clickedSong])
-                }
-                .keyboardShortcut(.defaultAction)
 
-                Button("Play Now") {
-                    Task {
-                        await self.playerService.playQueue(songs, startingAt: self.playStartIndex)
-                    }
-                }
-
-                Button("Cancel", role: .cancel) {
-                    // Dialog dismisses automatically
-                }
-            }
-        }
     }
 
     // MARK: - Views
@@ -334,15 +309,9 @@ struct ArtistDetailView: View {
         .buttonStyle(.plain)
         .contextMenu {
             Button {
-                Task {
-                    let allSongs = await self.viewModel.getAllSongs()
-                    let startIndex = allSongs.firstIndex(where: { $0.videoId == song.videoId }) ?? index
-                    self.songsToPlay = allSongs
-                    self.playStartIndex = startIndex
-                    self.showPlayConfirmation = true
-                }
+                self.playerService.insertNextInQueue([song])
             } label: {
-                Label("Play Now", systemImage: "play.fill")
+                Label("Play Next", systemImage: "text.line.first.and.arrowtriangle.forward")
             }
 
             Divider()

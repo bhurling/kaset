@@ -237,13 +237,14 @@ enum SearchResponseParser {
         let title = ParsingHelpers.extractTitleFromFlexColumns(data) ?? "Unknown"
         let artists = ParsingHelpers.extractArtistsFromFlexColumns(data)
         let album = ParsingHelpers.extractAlbumFromFlexColumns(data)
+        let duration = ParsingHelpers.extractDurationFromFlexColumns(data)
 
         let song = Song(
             id: videoId,
             title: title,
             artists: artists,
             album: album,
-            duration: nil,
+            duration: duration,
             thumbnailURL: thumbnailURL,
             videoId: videoId
         )
