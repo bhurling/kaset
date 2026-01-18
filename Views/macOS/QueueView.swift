@@ -92,7 +92,7 @@ struct QueueView: View {
     private var queueListView: some View {
         ScrollView {
             LazyVStack(spacing: 0) {
-                ForEach(Array(self.playerService.queue.enumerated()), id: \.offset) { index, song in
+                ForEach(Array(self.playerService.queue.enumerated()), id: \.element.videoId) { index, song in
                     self.queueRow(for: song, at: index)
                         .accessibilityIdentifier(AccessibilityID.Queue.row(index: index))
                 }
@@ -117,6 +117,21 @@ struct QueueView: View {
                     .offset(y: -4)
             }
 
+            // Ghost placeholder at original position while dragging
+            if isDragging {
+                QueueRowView(
+                    song: song,
+                    isCurrentTrack: isCurrentTrack,
+                    index: index,
+                    favoritesManager: self.favoritesManager,
+                    playerService: self.playerService,
+                    onRemove: {}
+                )
+                .opacity(0.3)
+                .allowsHitTesting(false)
+            }
+
+            // Actual row (moves when dragging)
             QueueRowView(
                 song: song,
                 isCurrentTrack: isCurrentTrack,
@@ -125,7 +140,7 @@ struct QueueView: View {
                 playerService: self.playerService,
                 onRemove: { self.playerService.removeFromQueue(at: index) }
             )
-            .opacity(isDragging ? 0.4 : 1.0)
+            .opacity(isDragging ? 1.0 : 1.0)
             .offset(y: isDragging ? self.dragOffset : 0)
             .zIndex(isDragging ? 100 : 0)
             .gesture(
@@ -142,7 +157,7 @@ struct QueueView: View {
                     }
             )
 
-            // Drop indicator below (only for last item)
+            // Drop indicator below
             if dropInfo.showBelow {
                 self.dropIndicator
                     .offset(y: self.rowHeight - 4)
@@ -218,19 +233,20 @@ struct QueueView: View {
             insertIndex -= 1
         }
 
-        // Perform reorder if destination is different from source
+        // Reset drag state immediately (no animation on offset)
+        self.draggingIndex = nil
+        self.dragOffset = 0
+        self.dragStartY = 0
+
+        // Perform reorder with animation so items slide into place
         if insertIndex != sourceIndex, insertIndex >= 0, insertIndex < self.playerService.queue.count {
             var videoIds = self.playerService.queue.map(\.videoId)
             let movedId = videoIds.remove(at: sourceIndex)
             videoIds.insert(movedId, at: insertIndex)
-            self.playerService.reorderQueue(videoIds: videoIds)
-        }
 
-        // Reset drag state
-        withAnimation(.easeOut(duration: 0.2)) {
-            self.draggingIndex = nil
-            self.dragOffset = 0
-            self.dragStartY = 0
+            withAnimation(.easeInOut(duration: 0.25)) {
+                self.playerService.reorderQueue(videoIds: videoIds)
+            }
         }
     }
 }
