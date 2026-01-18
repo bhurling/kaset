@@ -309,6 +309,12 @@ struct PlaylistDetailView: View {
                 Label("Play Next", systemImage: "text.line.first.and.arrowtriangle.forward")
             }
 
+            Button {
+                self.playerService.appendToQueue([track])
+            } label: {
+                Label("Play Last", systemImage: "text.line.last.and.arrowtriangle.forward")
+            }
+
             Divider()
 
             FavoritesContextMenu.menuItem(for: track, manager: self.favoritesManager)
@@ -316,10 +322,6 @@ struct PlaylistDetailView: View {
             Divider()
 
             LikeDislikeContextMenu(song: track, likeStatusManager: self.likeStatusManager)
-
-            Divider()
-
-            StartRadioContextMenu.menuItem(for: track, playerService: self.playerService)
 
             Divider()
 

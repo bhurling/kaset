@@ -308,6 +308,12 @@ private struct QueueRowView: View {
                     Label("Play Next", systemImage: "text.line.first.and.arrowtriangle.forward")
                 }
 
+            Button {
+                self.moveToLast()
+            } label: {
+                Label("Play Last", systemImage: "text.line.last.and.arrowtriangle.forward")
+            }
+
                 Button {
                     Task {
                         await self.playerService.playFromQueue(at: self.index)
@@ -320,10 +326,6 @@ private struct QueueRowView: View {
             }
 
             FavoritesContextMenu.menuItem(for: self.song, manager: self.favoritesManager)
-
-            Divider()
-
-            StartRadioContextMenu.menuItem(for: self.song, playerService: self.playerService)
 
             Divider()
 
@@ -381,6 +383,15 @@ private struct QueueRowView: View {
 
         // Insert it right after the current track
         self.playerService.insertNextInQueue([song])
+    }
+
+    private func moveToLast() {
+        // Remove the song from its current position
+        let song = self.playerService.queue[self.index]
+        self.playerService.removeFromQueue(at: self.index)
+
+        // Append it to the end of the queue
+        self.playerService.appendToQueue([song])
     }
 }
 

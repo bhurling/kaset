@@ -256,6 +256,12 @@ struct LikedMusicView: View {
                 Label("Play Next", systemImage: "text.line.first.and.arrowtriangle.forward")
             }
 
+            Button {
+                self.playerService.appendToQueue([song])
+            } label: {
+                Label("Play Last", systemImage: "text.line.last.and.arrowtriangle.forward")
+            }
+
             Divider()
 
             FavoritesContextMenu.menuItem(for: song, manager: self.favoritesManager)
@@ -267,10 +273,6 @@ struct LikedMusicView: View {
             } label: {
                 Label("Unlike", systemImage: "hand.thumbsup.fill")
             }
-
-            Divider()
-
-            StartRadioContextMenu.menuItem(for: song, playerService: self.playerService)
 
             Divider()
 
