@@ -83,7 +83,7 @@ struct HomeSectionItemCard: View {
             }
         }
         .frame(width: Self.cardWidth, height: Self.cardHeight)
-        .clipShape(.rect(cornerRadius: 8))        
+        .clipShape(.rect(cornerRadius: 8))
     }
 
     /// Placeholder view for items without thumbnails.
