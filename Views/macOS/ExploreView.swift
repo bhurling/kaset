@@ -5,6 +5,8 @@ import SwiftUI
 struct ExploreView: View {
     @State var viewModel: ExploreViewModel
     @Environment(PlayerService.self) private var playerService
+    @Environment(FavoritesManager.self) private var favoritesManager
+    @Environment(SongLikeStatusManager.self) private var likeStatusManager
     @State private var navigationPath = NavigationPath()
     @State private var networkMonitor = NetworkMonitor.shared
 
@@ -77,11 +79,17 @@ struct ExploreView: View {
                             HomeSectionItemCard(item: item, rank: index + 1) {
                                 self.playItem(item, in: section, at: index)
                             }
+                            .contextMenu {
+                                self.contextMenuItems(for: item, in: section, at: index)
+                            }
                         }
                     } else {
                         ForEach(Array(section.items.enumerated()), id: \.element.id) { index, item in
                             HomeSectionItemCard(item: item) {
                                 self.playItem(item, in: section, at: index)
+                            }
+                            .contextMenu {
+                                self.contextMenuItems(for: item, in: section, at: index)
                             }
                         }
                     }
@@ -112,6 +120,24 @@ struct ExploreView: View {
         case let .artist(artist):
             self.navigationPath.append(artist)
         }
+    }
+
+    // MARK: - Context Menu
+
+    @ViewBuilder
+    private func contextMenuItems(for item: HomeSectionItem, in _: HomeSection, at _: Int) -> some View {
+        HomeSectionItemContextMenu.menu(
+            for: item,
+            playerService: self.playerService,
+            favoritesManager: self.favoritesManager,
+            likeStatusManager: self.likeStatusManager,
+            onNavigateToPlaylist: { playlist in
+                self.navigationPath.append(playlist)
+            },
+            onNavigateToArtist: { artist in
+                self.navigationPath.append(artist)
+            }
+        )
     }
 }
 

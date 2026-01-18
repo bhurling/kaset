@@ -166,6 +166,195 @@ struct HomeSectionItemCard: View {
     }
 }
 
+// MARK: - HomeSectionItemContextMenu
+
+/// Reusable context menu for HomeSectionItem (songs, albums, playlists, artists).
+/// Provides consistent context menu behavior across Home, Explore, Charts, and New Releases views.
+@available(macOS 26.0, *)
+@MainActor
+enum HomeSectionItemContextMenu {
+    /// Creates a complete context menu for a HomeSectionItem.
+    @ViewBuilder
+    static func menu(
+        for item: HomeSectionItem,
+        playerService: PlayerService,
+        favoritesManager: FavoritesManager,
+        likeStatusManager: SongLikeStatusManager,
+        onNavigateToPlaylist: @escaping (Playlist) -> Void,
+        onNavigateToArtist: @escaping (Artist) -> Void
+    ) -> some View {
+        switch item {
+        case let .song(song):
+            Self.songMenu(
+                song: song,
+                playerService: playerService,
+                favoritesManager: favoritesManager,
+                likeStatusManager: likeStatusManager,
+                onNavigateToPlaylist: onNavigateToPlaylist,
+                onNavigateToArtist: onNavigateToArtist
+            )
+
+        case let .album(album):
+            Self.albumMenu(
+                album: album,
+                favoritesManager: favoritesManager,
+                onNavigateToPlaylist: onNavigateToPlaylist
+            )
+
+        case let .playlist(playlist):
+            Self.playlistMenu(
+                playlist: playlist,
+                favoritesManager: favoritesManager,
+                onNavigateToPlaylist: onNavigateToPlaylist
+            )
+
+        case let .artist(artist):
+            Self.artistMenu(
+                artist: artist,
+                favoritesManager: favoritesManager,
+                onNavigateToArtist: onNavigateToArtist
+            )
+        }
+    }
+
+    // MARK: - Song Menu
+
+    @ViewBuilder
+    private static func songMenu(
+        song: Song,
+        playerService: PlayerService,
+        favoritesManager: FavoritesManager,
+        likeStatusManager: SongLikeStatusManager,
+        onNavigateToPlaylist: @escaping (Playlist) -> Void,
+        onNavigateToArtist: @escaping (Artist) -> Void
+    ) -> some View {
+        Button {
+            playerService.insertNextInQueue([song])
+        } label: {
+            Label("Play Next", systemImage: "text.line.first.and.arrowtriangle.forward")
+        }
+
+        Button {
+            playerService.appendToQueue([song])
+        } label: {
+            Label("Play Last", systemImage: "text.line.last.and.arrowtriangle.forward")
+        }
+
+        Divider()
+
+        FavoritesContextMenu.menuItem(for: song, manager: favoritesManager)
+
+        Divider()
+
+        LikeDislikeContextMenu(song: song, likeStatusManager: likeStatusManager)
+
+        Divider()
+
+        ShareContextMenu.menuItem(for: song)
+
+        Divider()
+
+        if let artist = song.artists.first, !artist.id.isEmpty, !artist.id.contains("-") {
+            Button {
+                onNavigateToArtist(artist)
+            } label: {
+                Label("Go to Artist", systemImage: "person")
+            }
+        }
+
+        if let album = song.album, album.hasNavigableId {
+            let playlist = Playlist(
+                id: album.id,
+                title: album.title,
+                description: nil,
+                thumbnailURL: album.thumbnailURL ?? song.thumbnailURL,
+                trackCount: album.trackCount,
+                author: album.artistsDisplay
+            )
+            Button {
+                onNavigateToPlaylist(playlist)
+            } label: {
+                Label("Go to Album", systemImage: "square.stack")
+            }
+        }
+    }
+
+    // MARK: - Album Menu
+
+    @ViewBuilder
+    private static func albumMenu(
+        album: Album,
+        favoritesManager: FavoritesManager,
+        onNavigateToPlaylist: @escaping (Playlist) -> Void
+    ) -> some View {
+        Button {
+            let playlist = Playlist(
+                id: album.id,
+                title: album.title,
+                description: nil,
+                thumbnailURL: album.thumbnailURL,
+                trackCount: album.trackCount,
+                author: album.artistsDisplay
+            )
+            onNavigateToPlaylist(playlist)
+        } label: {
+            Label("View Album", systemImage: "square.stack")
+        }
+
+        Divider()
+
+        FavoritesContextMenu.menuItem(for: album, manager: favoritesManager)
+
+        ShareContextMenu.menuItem(for: album)
+    }
+
+    // MARK: - Playlist Menu
+
+    @ViewBuilder
+    private static func playlistMenu(
+        playlist: Playlist,
+        favoritesManager: FavoritesManager,
+        onNavigateToPlaylist: @escaping (Playlist) -> Void
+    ) -> some View {
+        Button {
+            onNavigateToPlaylist(playlist)
+        } label: {
+            Label("View Playlist", systemImage: "music.note.list")
+        }
+
+        Divider()
+
+        FavoritesContextMenu.menuItem(for: playlist, manager: favoritesManager)
+
+        Divider()
+
+        ShareContextMenu.menuItem(for: playlist)
+    }
+
+    // MARK: - Artist Menu
+
+    @ViewBuilder
+    private static func artistMenu(
+        artist: Artist,
+        favoritesManager: FavoritesManager,
+        onNavigateToArtist: @escaping (Artist) -> Void
+    ) -> some View {
+        Button {
+            onNavigateToArtist(artist)
+        } label: {
+            Label("View Artist", systemImage: "person")
+        }
+
+        Divider()
+
+        FavoritesContextMenu.menuItem(for: artist, manager: favoritesManager)
+
+        ShareContextMenu.menuItem(for: artist)
+    }
+}
+
+// MARK: - Preview
+
 #Preview {
     let song = Song(
         id: "test",
