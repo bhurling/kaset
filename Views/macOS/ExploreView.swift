@@ -94,11 +94,9 @@ struct ExploreView: View {
 
     private func playItem(_ item: HomeSectionItem, in _: HomeSection, at _: Int) {
         switch item {
-        case let .song(song):
-            // Play the song and fetch similar songs (radio queue) in the background
-            Task {
-                await self.playerService.playWithRadio(song: song)
-            }
+        case .song:
+            // Single click does nothing for songs - use context menu (right-click) for actions
+            break
         case let .playlist(playlist):
             self.navigationPath.append(playlist)
         case let .album(album):

@@ -83,22 +83,7 @@ struct HomeSectionItemCard: View {
             }
         }
         .frame(width: Self.cardWidth, height: Self.cardHeight)
-        .clipShape(.rect(cornerRadius: 8))
-        .overlay {
-            // Play overlay on hover (for songs)
-            if case .song = self.item, self.isHovering {
-                Circle()
-                    .fill(.ultraThinMaterial)
-                    .frame(width: 48, height: 48)
-                    .overlay {
-                        Image(systemName: "play.fill")
-                            .font(.title2)
-                            .foregroundStyle(.primary)
-                            .offset(x: 2)
-                    }
-                    .transition(.scale.combined(with: .opacity))
-            }
-        }
+        .clipShape(.rect(cornerRadius: 8))        
     }
 
     /// Placeholder view for items without thumbnails.
