@@ -12,6 +12,18 @@ struct QueueView: View {
     /// Namespace for glass effect morphing.
     @Namespace private var queueNamespace
 
+    /// Index of the row being dragged (nil when not dragging).
+    @State private var draggingIndex: Int?
+
+    /// Current Y offset of the drag gesture.
+    @State private var dragOffset: CGFloat = 0
+
+    /// Y position within the row where the drag started.
+    @State private var dragStartY: CGFloat = 0
+
+    /// Height of each row for calculating drop position.
+    private let rowHeight: CGFloat = 56
+
     var body: some View {
         GlassEffectContainer(spacing: 0) {
             VStack(spacing: 0) {
@@ -81,22 +93,145 @@ struct QueueView: View {
         ScrollView {
             LazyVStack(spacing: 0) {
                 ForEach(Array(self.playerService.queue.enumerated()), id: \.offset) { index, song in
-                    QueueRowView(
-                        song: song,
-                        isCurrentTrack: index == self.playerService.currentIndex,
-                        index: index,
-                        favoritesManager: self.favoritesManager,
-                        playerService: self.playerService,
-                        onRemove: {
-                            self.playerService.removeFromQueue(at: index)
-                        }
-                    )
-                    .accessibilityIdentifier(AccessibilityID.Queue.row(index: index))
+                    self.queueRow(for: song, at: index)
+                        .accessibilityIdentifier(AccessibilityID.Queue.row(index: index))
                 }
             }
             .padding(.vertical, 8)
         }
         .accessibilityIdentifier(AccessibilityID.Queue.scrollView)
+    }
+
+    // MARK: - Queue Row
+
+    @ViewBuilder
+    private func queueRow(for song: Song, at index: Int) -> some View {
+        let isCurrentTrack = index == self.playerService.currentIndex
+        let isDragging = self.draggingIndex == index
+        let dropInfo = self.dropTargetInfo(for: index)
+
+        ZStack(alignment: .top) {
+            // Drop indicator above
+            if dropInfo.showAbove {
+                self.dropIndicator
+                    .offset(y: -4)
+            }
+
+            QueueRowView(
+                song: song,
+                isCurrentTrack: isCurrentTrack,
+                index: index,
+                favoritesManager: self.favoritesManager,
+                playerService: self.playerService,
+                onRemove: { self.playerService.removeFromQueue(at: index) }
+            )
+            .opacity(isDragging ? 0.4 : 1.0)
+            .offset(y: isDragging ? self.dragOffset : 0)
+            .zIndex(isDragging ? 100 : 0)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        if self.draggingIndex == nil {
+                            self.draggingIndex = index
+                            self.dragStartY = value.startLocation.y
+                        }
+                        self.dragOffset = value.translation.height
+                    }
+                    .onEnded { _ in
+                        self.handleDragEnd(from: index)
+                    }
+            )
+
+            // Drop indicator below (only for last item)
+            if dropInfo.showBelow {
+                self.dropIndicator
+                    .offset(y: self.rowHeight - 4)
+            }
+        }
+    }
+
+    /// Calculate if this row should show a drop indicator based on current mouse position.
+    private func dropTargetInfo(for index: Int) -> (showAbove: Bool, showBelow: Bool) {
+        guard let sourceIndex = self.draggingIndex else {
+            return (false, false)
+        }
+
+        // Calculate the virtual Y position of the mouse in the list
+        let globalY = CGFloat(sourceIndex) * self.rowHeight + self.dragStartY + self.dragOffset
+
+        // Determine which row the mouse is over
+        let targetRow = max(0, min(Int(globalY / self.rowHeight), self.playerService.queue.count - 1))
+
+        // Don't show indicator on the dragged row itself
+        if index == sourceIndex || targetRow == sourceIndex {
+            return (false, false)
+        }
+
+        // Check if this is the target row
+        guard index == targetRow else {
+            return (false, false)
+        }
+
+        // Determine if mouse is in upper or lower half of the target row
+        let positionInRow = globalY - CGFloat(targetRow) * self.rowHeight
+        let isUpperHalf = positionInRow < self.rowHeight / 2
+
+        return (isUpperHalf, !isUpperHalf)
+    }
+
+    private var dropIndicator: some View {
+        HStack(spacing: 0) {
+            Circle()
+                .fill(Color.accentColor)
+                .frame(width: 8, height: 8)
+
+            Rectangle()
+                .fill(Color.accentColor)
+                .frame(height: 2)
+
+            Circle()
+                .fill(Color.accentColor)
+                .frame(width: 8, height: 8)
+        }
+        .padding(.horizontal, 12)
+        .frame(height: 8)
+    }
+
+    // MARK: - Drag Handling
+
+    private func handleDragEnd(from sourceIndex: Int) {
+        // Calculate the virtual Y position of the mouse in the list
+        let globalY = CGFloat(sourceIndex) * self.rowHeight + self.dragStartY + self.dragOffset
+
+        // Determine which row the mouse is over
+        let targetRow = max(0, min(Int(globalY / self.rowHeight), self.playerService.queue.count - 1))
+
+        // Determine if mouse is in upper or lower half of the target row
+        let positionInRow = globalY - CGFloat(targetRow) * self.rowHeight
+        let dropBelow = positionInRow >= self.rowHeight / 2
+
+        // Calculate insert index based on drop position
+        var insertIndex = dropBelow ? targetRow + 1 : targetRow
+
+        // Adjust for removal of source item
+        if sourceIndex < insertIndex {
+            insertIndex -= 1
+        }
+
+        // Perform reorder if destination is different from source
+        if insertIndex != sourceIndex, insertIndex >= 0, insertIndex < self.playerService.queue.count {
+            var videoIds = self.playerService.queue.map(\.videoId)
+            let movedId = videoIds.remove(at: sourceIndex)
+            videoIds.insert(movedId, at: insertIndex)
+            self.playerService.reorderQueue(videoIds: videoIds)
+        }
+
+        // Reset drag state
+        withAnimation(.easeOut(duration: 0.2)) {
+            self.draggingIndex = nil
+            self.dragOffset = 0
+            self.dragStartY = 0
+        }
     }
 }
 
@@ -151,7 +286,7 @@ private struct QueueRowView: View {
             Spacer()
 
             // Duration
-            if let duration = song.duration {
+            if let duration = self.song.duration {
                 Text(self.formatDuration(duration))
                     .font(.system(size: 11))
                     .foregroundStyle(.tertiary)
@@ -159,6 +294,7 @@ private struct QueueRowView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
+        .frame(height: 56)
         .background(self.backgroundColor)
         .contentShape(Rectangle())
         .onHover { hovering in
